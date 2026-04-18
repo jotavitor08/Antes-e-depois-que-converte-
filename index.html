@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Por que seu Antes e Depois não Converte — Ember</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --preto: #080808;
+  --escuro: #111111;
+  --escuro2: #1A1A1A;
+  --medio: #3A3A3A;
+  --mudo: #888888;
+  --borda: #E0E0E0;
+  --claro: #F5F5F5;
+  --branco: #FFFFFF;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--branco);
+  color: var(--preto);
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+/* ═══ NAV ═══ */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 15px 52px;
+  background: rgba(8,8,8,0.98);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.05rem; font-weight: 600;
+  color: var(--branco); letter-spacing: .14em; text-transform: uppercase;
+}
+.nav-btn {
+  background: var(--branco); color: var(--preto);
+  padding: 10px 26px; font-size: .78rem; font-weight: 600;
+  letter-spacing: .07em; text-transform: uppercase;
+  text-decoration: none; transition: opacity .2s;
+}
+.nav-btn:hover { opacity: .85; }
+
+/* ═══ HERO ═══ */
+.hero {
+  min-height: 100vh;
+  background: var(--preto);
+  display: flex; align-items: center; justify-content: center;
+  text-align: center;
+  padding: 140px 24px 90px;
+  position: relative; overflow: hidden;
+}
+.hero-grade {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 72px 72px;
+  pointer-events: none;
+}
+.hero-brilho {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 35%, rgba(255,255,255,.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-inner { position: relative; z-index: 1; max-width: 820px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 12px;
+  font-size: .68rem; font-weight: 500; letter-spacing: .22em;
+  text-transform: uppercase; color: rgba(255,255,255,.38);
+  margin-bottom: 32px;
+  animation: up .7s ease both;
+}
+.hero-badge::before, .hero-badge::after {
+  content: ''; display: block; width: 28px; height: 1px;
+  background: rgba(255,255,255,.18);
+}
+
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  font-weight: 700; line-height: 1.04; color: var(--branco);
+  margin-bottom: 24px;
+  animation: up .7s .1s ease both;
+}
+.hero h1 em { font-style: italic; color: rgba(255,255,255,.38); }
+
+.hero p {
+  font-size: clamp(1rem, 1.8vw, 1.12rem);
+  color: rgba(255,255,255,.38); font-weight: 300;
+  max-width: 520px; margin: 0 auto 52px;
+  animation: up .7s .2s ease both;
+}
+
+.hero-cta {
+  display: inline-block; background: var(--branco); color: var(--preto);
+  padding: 18px 58px; font-size: .9rem; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
+  transition: opacity .2s, transform .2s;
+  animation: up .7s .3s ease both;
+}
+.hero-cta:hover { opacity: .88; transform: translateY(-2px); }
+
+.hero-nota {
+  margin-top: 16px; font-size: .78rem;
+  color: rgba(255,255,255,.22);
+  animation: up .7s .4s ease both;
+}
+.hero-nota strong { color: rgba(255,255,255,.65); }
+
+/* ═══ FAIXA TICKER ═══ */
+.ticker { overflow: hidden; background: var(--branco); border-top: 1px solid var(--borda); border-bottom: 1px solid var(--borda); padding: 12px 0; }
+.ticker-inner {
+  display: flex; gap: 52px; white-space: nowrap;
+  font-size: .66rem; font-weight: 600; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--mudo);
+  animation: slide 22s linear infinite;
+}
+@keyframes slide { to { transform: translateX(-50%); } }
+
+/* ═══ CONTAINER ═══ */
+.sec { padding: 100px 24px; }
+.wrap { max-width: 900px; margin: 0 auto; }
+.wrap-sm { max-width: 660px; margin: 0 auto; }
+
+.label {
+  display: block; font-size: .66rem; font-weight: 700;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--mudo); margin-bottom: 14px;
+}
+.titulo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2rem, 4.5vw, 3.2rem);
+  font-weight: 700; line-height: 1.12; margin-bottom: 16px;
+}
+.subtitulo {
+  font-size: 1.02rem; color: var(--mudo);
+  margin-bottom: 52px; max-width: 560px;
+}
+
+/* ═══ SEÇÃO DOR — fundo preto ═══ */
+.sec-dor { background: var(--escuro); }
+.sec-dor .label { color: rgba(255,255,255,.3); }
+.sec-dor .titulo { color: var(--branco); }
+.sec-dor .subtitulo { color: rgba(255,255,255,.36); }
+
+.dor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(255,255,255,.07); margin-top: 0; }
+.dor-card { background: var(--escuro2); padding: 38px 32px; transition: background .2s; }
+.dor-card:hover { background: rgba(255,255,255,.04); }
+.dor-n {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 3.2rem; font-weight: 700;
+  color: rgba(255,255,255,.06); line-height: 1; margin-bottom: 14px;
+}
+.dor-card h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem; font-weight: 600;
+  color: rgba(255,255,255,.82); margin-bottom: 10px;
+}
+.dor-card p { font-size: .88rem; color: rgba(255,255,255,.36); line-height: 1.65; }
+
+/* ═══ SEÇÃO ERROS — fundo branco ═══ */
+.sec-erros { background: var(--branco); }
+
+.erros-lista { display: flex; flex-direction: column; }
+.erro {
+  display: grid; grid-template-columns: 68px 1fr;
+  border: 1px solid var(--borda); border-bottom: none;
+  transition: border-color .18s, transform .15s;
+  background: var(--branco);
+}
+.erro:last-child { border-bottom: 1px solid var(--borda); }
+.erro:hover { border-color: var(--preto); transform: translateX(5px); z-index: 1; position: relative; }
+.erro-num {
+  background: var(--preto); color: var(--branco);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.erro-body { padding: 26px 30px; }
+.erro-body h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.12rem; font-weight: 600; margin-bottom: 6px;
+}
+.erro-body p { font-size: .88rem; color: var(--mudo); line-height: 1.6; }
+
+/* ═══ SEÇÃO CONTEÚDO — fundo claro ═══ */
+.sec-conteudo { background: var(--claro); }
+
+.conteudo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.conteudo-card {
+  background: var(--branco); padding: 30px 26px;
+  border: 1px solid var(--borda);
+}
+.conteudo-card .icone {
+  font-size: 1.4rem; margin-bottom: 14px; display: block;
+}
+.conteudo-card h4 {
+  font-weight: 600; font-size: .95rem;
+  margin-bottom: 8px;
+}
+.conteudo-card p { font-size: .84rem; color: var(--mudo); line-height: 1.6; }
+
+/* ═══ PARA QUEM ═══ */
+.sec-paraquem { background: var(--branco); }
+.pq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.pq-col { background: var(--claro); padding: 38px 34px; }
+.pq-col h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.2rem; font-weight: 700;
+  margin-bottom: 22px; padding-bottom: 14px;
+  border-bottom: 2px solid var(--borda);
+}
+.pq-col.sim h3 { border-color: var(--preto); }
+.pq-col.nao h3 { color: var(--mudo); }
+.pq-lista { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+.pq-lista li { display: flex; gap: 12px; font-size: .9rem; align-items: flex-start; line-height: 1.5; }
+.pq-lista li .ic { flex-shrink: 0; margin-top: 2px; }
+
+/* ═══ OFERTA — fundo preto ═══ */
+.sec-oferta { background: var(--preto); padding: 100px 24px; }
+.oferta-box {
+  max-width: 540px; margin: 0 auto;
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 60px 48px; position: relative; text-align: center;
+}
+.oferta-box::before {
+  content: 'Por que seu Antes e Depois não Converte';
+  position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+  background: var(--branco); color: var(--preto);
+  font-size: .58rem; font-weight: 700; letter-spacing: .18em;
+  padding: 4px 20px; text-transform: uppercase; white-space: nowrap;
+}
+.oferta-nome {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.7rem; font-weight: 700;
+  color: var(--branco); margin-bottom: 6px; line-height: 1.2;
+}
+.oferta-tag { font-size: .74rem; color: rgba(255,255,255,.28); margin-bottom: 32px; }
+.oferta-lista {
+  list-style: none; text-align: left;
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 36px;
+}
+.oferta-lista li {
+  font-size: .88rem; color: rgba(255,255,255,.62);
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.oferta-lista li::before {
+  content: '—'; color: rgba(255,255,255,.2);
+  flex-shrink: 0; margin-top: 3px;
+}
+.preco-antigo { font-size: .82rem; color: rgba(255,255,255,.2); text-decoration: line-through; margin-bottom: 4px; }
+.preco {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 5rem; font-weight: 700;
+  color: var(--branco); line-height: 1; margin-bottom: 8px;
+}
+.preco-nota { font-size: .73rem; color: rgba(255,255,255,.25); margin-bottom: 32px; }
+.oferta-btn {
+  display: block; background: var(--branco); color: var(--preto);
+  padding: 18px 0; width: 100%;
+  font-size: .9rem; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; text-decoration: none;
+  transition: opacity .2s;
+}
+.oferta-btn:hover { opacity: .88; }
+.oferta-seg { margin-top: 16px; font-size: .68rem; color: rgba(255,255,255,.18); }
+
+/* ═══ GARANTIA ═══ */
+.sec-garantia { background: var(--branco); }
+.garantia-box {
+  max-width: 580px; margin: 0 auto; text-align: center;
+  border: 1px solid var(--borda); padding: 56px 52px;
+}
+.garantia-circulo {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--preto); color: var(--branco);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin: 0 auto 28px;
+  font-size: .6rem; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; line-height: 1.5;
+}
+.garantia-box h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem; font-weight: 700; margin-bottom: 16px;
+}
+.garantia-box p { font-size: .97rem; color: var(--mudo); line-height: 1.75; max-width: 440px; margin: 0 auto; }
+
+/* ═══ FOOTER ═══ */
+footer {
+  background: var(--preto); color: rgba(255,255,255,.22);
+  text-align: center; padding: 32px 24px;
+  font-size: .72rem; border-top: 1px solid rgba(255,255,255,.06);
+  line-height: 1.8;
+}
+footer strong { color: rgba(255,255,255,.45); }
+
+/* ═══ ANIMAÇÕES ═══ */
+@keyframes up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══ RESPONSIVO ═══ */
+@media (max-width: 768px) {
+  nav { padding: 14px 20px; }
+  .hero { padding: 110px 20px 70px; }
+  .dor-grid { grid-template-columns: 1fr; }
+  .erro { grid-template-columns: 52px 1fr; }
+  .conteudo-grid { grid-template-columns: 1fr; }
+  .pq-grid { grid-template-columns: 1fr; }
+  .oferta-box { padding: 48px 24px; }
+  .garantia-box { padding: 44px 24px; }
+  .sec { padding: 68px 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="logo">Ember · @ember.ia</span>
+  <a href="#oferta" class="nav-btn">Quero o Guia — R$47</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grade"></div>
+  <div class="hero-brilho"></div>
+  <div class="hero-inner">
+    <span class="hero-badge">Diagnóstico para Clínicas de Estética</span>
+    <h1>Por que seu Antes e Depois<br><em>não converte</em></h1>
+    <p>Os 6 erros invisíveis que fazem sua clínica perder clientes toda vez que posta uma transformação — e como corrigir cada um.</p>
+    <a href="#oferta" class="hero-cta">Quero descobrir meus erros</a>
+    <p class="hero-nota">por apenas <strong>R$47</strong> · acesso imediato</p>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span>Diagnóstico visual</span><span>·</span>
+    <span>6 erros revelados</span><span>·</span>
+    <span>Correção prática</span><span>·</span>
+    <span>Acesso imediato</span><span>·</span>
+    <span>Clínicas de estética</span><span>·</span>
+    <span>PDF completo</span><span>·</span>
+    <span>Diagnóstico visual</span><span>·</span>
+    <span>6 erros revelados</span><span>·</span>
+    <span>Correção prática</span><span>·</span>
+    <span>Acesso imediato</span><span>·</span>
+    <span>Clínicas de estética</span><span>·</span>
+    <span>PDF completo</span><span>·</span>
+  </div>
+</div>
+
+<!-- DOR -->
+<section class="sec sec-dor">
+  <div class="wrap">
+    <span class="label">O problema real</span>
+    <h2 class="titulo">Você posta o antes e depois.<br>O cliente salva — e não agenda.</h2>
+    <p class="subtitulo">Não é o procedimento. Não é o resultado. É o que está em volta da foto que está sabotando sua conversão.</p>
+
+    <div class="dor-grid">
+      <div class="dor-card">
+        <div class="dor-n">01</div>
+        <h3>A foto é boa mas a legenda não convence</h3>
+        <p>Você captura o resultado, mas não captura a emoção. Quem lê sente que está vendo um portfólio — não uma razão para agendar hoje.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-n">02</div>
+        <h3>Ninguém sabe quem é a paciente</h3>
+        <p>Antes e depois sem contexto é só imagem. Quando a seguidora não se identifica com a paciente, ela não se imagina no lugar dela.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-n">03</div>
+        <h3>O CTA está errado ou completamente ausente</h3>
+        <p>A pessoa ficou impressionada com o resultado. E aí? Sem uma chamada clara, o interesse some em segundos e ela segue o scroll.</p>
+      </div>
+      <div class="dor-card">
+        <div class="dor-n">04</div>
+        <h3>A foto não foi feita para converter</h3>
+        <p>Luz, ângulo, enquadramento. Um antes e depois sem técnica comunica amadorismo — mesmo que o resultado seja incrível.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ERROS -->
+<section class="sec sec-erros">
+  <div class="wrap">
+    <span class="label">O que você vai receber</span>
+    <h2 class="titulo">6 erros. 6 correções.<br>Resultado imediato.</h2>
+    <p class="subtitulo">Cada erro tem diagnóstico claro e ação prática para corrigir agora — sem fotógrafo, sem designer, sem agência.</p>
+
+    <div class="erros-lista">
+      <div class="erro">
+        <div class="erro-num">01</div>
+        <div class="erro-body">
+          <h3>Você fotografa o resultado, mas não a transformação</h3>
+          <p>Ângulo, luz e enquadramento que comunicam resultado premium — com o celular que você já tem. A técnica exata para cada tipo de procedimento.</p>
+        </div>
+      </div>
+      <div class="erro">
+        <div class="erro-num">02</div>
+        <div class="erro-body">
+          <h3>Sua legenda informa mas não vende</h3>
+          <p>A estrutura em 4 partes que faz a seguidora passar de curiosa para interessada. Com modelo completo pronto para copiar e adaptar.</p>
+        </div>
+      </div>
+      <div class="erro">
+        <div class="erro-num">03</div>
+        <div class="erro-body">
+          <h3>Você não conta a história da paciente</h3>
+          <p>O contexto que transforma uma foto em prova social irresistível. Como apresentar a paciente sem expô-la — e fazer quem lê se identificar.</p>
+        </div>
+      </div>
+      <div class="erro">
+        <div class="erro-num">04</div>
+        <div class="erro-body">
+          <h3>Seu CTA pede mas não convence</h3>
+          <p>3 modelos prontos de chamada para ação que geram agendamento real — e o que você nunca deve escrever depois de um resultado.</p>
+        </div>
+      </div>
+      <div class="erro">
+        <div class="erro-num">05</div>
+        <div class="erro-body">
+          <h3>Você publica no formato errado para o objetivo</h3>
+          <p>Post, reels, stories ou carrossel — cada formato converte diferente. O guia completo de qual usar para cada tipo de antes e depois.</p>
+        </div>
+      </div>
+      <div class="erro">
+        <div class="erro-num">06</div>
+        <div class="erro-body">
+          <h3>Você não tem sistema — tem sorte</h3>
+          <p>O protocolo de 7 passos: foto → legenda → formato → CTA → horário → resposta. Um atendimento vira 2 semanas de conteúdo que converte.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTEÚDO DETALHADO -->
+<section class="sec sec-conteudo">
+  <div class="wrap">
+    <span class="label">Tudo que está incluído</span>
+    <h2 class="titulo">Um guia completo,<br>sem enrolação.</h2>
+    <p class="subtitulo">Tudo que você precisa para transformar seu próximo antes e depois em agendamento.</p>
+
+    <div class="conteudo-grid">
+      <div class="conteudo-card">
+        <span class="icone">📸</span>
+        <h4>Protocolo de fotografia</h4>
+        <p>Técnica exata de ângulo, luz e enquadramento para cada tipo de procedimento — com e sem fotógrafo.</p>
+      </div>
+      <div class="conteudo-card">
+        <span class="icone">✍️</span>
+        <h4>Estrutura de legenda</h4>
+        <p>A fórmula em 4 partes que converte curiosidade em agendamento. Com modelo pronto para copiar.</p>
+      </div>
+      <div class="conteudo-card">
+        <span class="icone">💬</span>
+        <h4>3 modelos de CTA</h4>
+        <p>Chamadas para ação testadas que funcionam especificamente para clínicas de estética.</p>
+      </div>
+      <div class="conteudo-card">
+        <span class="icone">📱</span>
+        <h4>Guia de formatos</h4>
+        <p>Quando usar post, reels, stories ou carrossel — e como extrair o máximo de cada atendimento.</p>
+      </div>
+      <div class="conteudo-card">
+        <span class="icone">⚙️</span>
+        <h4>Protocolo completo</h4>
+        <p>Os 7 passos do atendimento ao agendamento. Um sistema que funciona sem depender de inspiração.</p>
+      </div>
+      <div class="conteudo-card">
+        <span class="icone">✅</span>
+        <h4>Checklist de auditoria</h4>
+        <p>22 pontos para revisar cada post antes de publicar. Zero chance de publicar errado novamente.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PARA QUEM -->
+<section class="sec sec-paraquem">
+  <div class="wrap-sm">
+    <span class="label">Para quem é</span>
+    <h2 class="titulo">Esse guia é para você?</h2>
+
+    <div class="pq-grid">
+      <div class="pq-col sim">
+        <h3>É para você</h3>
+        <ul class="pq-lista">
+          <li><span class="ic">✓</span><span>Você tem clínica de estética ativa no Instagram</span></li>
+          <li><span class="ic">✓</span><span>Já posta antes e depois mas não vê agendamentos</span></li>
+          <li><span class="ic">✓</span><span>Quer entender por que o resultado não converte online</span></li>
+          <li><span class="ic">✓</span><span>Quer corrigir agora, sem precisar de agência ou designer</span></li>
+          <li><span class="ic">✓</span><span>Quer um sistema — não mais um post feito na inspiração</span></li>
+        </ul>
+      </div>
+      <div class="pq-col nao">
+        <h3>Não é para você</h3>
+        <ul class="pq-lista">
+          <li><span class="ic">✗</span><span>Você ainda não tem clínica ou perfil no Instagram</span></li>
+          <li><span class="ic">✗</span><span>Sua agenda já está 100% lotada por indicação</span></li>
+          <li><span class="ic">✗</span><span>Está buscando curso longo com certificado</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OFERTA -->
+<section class="sec-oferta" id="oferta">
+  <div class="oferta-box">
+    <p class="oferta-nome">Guia Diagnóstico<br>Completo</p>
+    <p class="oferta-tag">PDF · Acesso imediato · Vitalício</p>
+
+    <ul class="oferta-lista">
+      <li>6 erros com diagnóstico e correção prática</li>
+      <li>Protocolo completo de fotografia para conversão</li>
+      <li>Estrutura de legenda em 4 partes + modelo pronto</li>
+      <li>3 modelos de CTA que geram agendamento real</li>
+      <li>Guia de formatos: post, reels, stories, carrossel</li>
+      <li>Protocolo de 7 passos do atendimento ao post</li>
+      <li>Checklist de 22 pontos para auditoria imediata</li>
+    </ul>
+
+    <p class="preco-antigo">De R$97,00</p>
+    <p class="preco">R$47</p>
+    <p class="preco-nota">pagamento único · acesso vitalício · entrega imediata</p>
+
+    <a href="https://pay.kiwify.com.br/SEU-LINK-AQUI" class="oferta-btn">Quero o guia agora por R$47</a>
+    <p class="oferta-seg">Compra segura · Kiwify · Garantia de 7 dias</p>
+  </div>
+</section>
+
+<!-- GARANTIA -->
+<section class="sec sec-garantia">
+  <div class="garantia-box">
+    <div class="garantia-circulo">
+      <span>7</span>
+      <span>dias</span>
+    </div>
+    <h2>Risco zero para você</h2>
+    <p>Acesse o guia. Aplique os 6 diagnósticos no seu próximo post. Se em 7 dias você sentir que não valeu, devolvemos 100% do seu dinheiro — sem perguntas, sem burocracia, sem julgamento.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <strong>EMBER</strong> · @ember.ia · Especialistas em clínicas de estética avançada<br>
+  Por que seu Antes e Depois não Converte · Guia diagnóstico · R$47 · Acesso imediato
+</footer>
+
+</body>
+</html>
